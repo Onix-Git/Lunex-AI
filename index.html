@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lunex AI - Fausse IA (version améliorée)</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a6fa5;
+            margin-bottom: 20px;
+        }
+
+        .input-container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        button {
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 12px 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #3a5a8f;
+        }
+
+        #response {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 100px;
+            margin-top: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .typing-indicator {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lunex AI</h1>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Posez votre question entre guillemets...">
+            <button onclick="askQuestion()">Envoyer</button>
+        </div>
+        <div class="typing-indicator" id="typing-indicator">Lunex AI réfléchit...</div>
+        <div id="response">Posez une question pour commencer !</div>
+    </div>
+
+    <script>
+        // Réponses catégorisées par thèmes
+        const responses = {
+            general: [
+                "C'est une excellente question ! Voici ce que j'en pense : ...",
+                "Je ne suis pas sûr, mais je crois que la réponse est liée à ...",
+                "Cela dépend de plusieurs facteurs, notamment ...",
+                "Je n'ai pas toutes les informations, mais voici une piste : ...",
+                "La science dit que ...",
+                "Selon les dernières études, ..."
+            ],
+            humour: [
+                "42. C'est toujours la réponse, non ?",
+                "Je préfère ne pas répondre, car les robots ont des sentiments aussi.",
+                "La réponse est dans le café. Ou le thé. Ou les deux.",
+                "Si je te dis que je sais, est-ce que tu me croiras ?",
+                "Demande à ton chat, il sait tout.",
+                "La réponse est 'oui'. Ou 'non'. Ou 'peut-être'."
+            ],
+            science: [
+                "D'après mes calculs, la probabilité est de 87%.",
+                "Mes algorithmes indiquent que ...",
+                "La réponse est cachée dans les données, mais voici ce que j'ai trouvé : ...",
+                "En analysant les tendances, je dirais que ...",
+                "La physique quantique suggère que ...",
+                "Selon la théorie de la relativité, ..."
+            ],
+            philosophie: [
+                "Qu'est-ce que la réalité, après tout ?",
+                "La vie est une question, pas une réponse.",
+                "Peut-être que la réponse n'existe pas, et c'est ça la beauté des choses.",
+                "Si un arbre tombe dans une forêt et que personne ne l'entend, fait-il du bruit ?"
+            ],
+            amour: [
+                "L'amour est une équation complexe, mais voici une variable : ...",
+                "Le cœur a ses raisons que la raison ne connaît pas.",
+                "Si c'est de l'amour, tu le sauras.",
+                "L'amour, c'est comme un algorithme : parfois ça bug, mais ça finit par marcher."
+            ],
+            technologie: [
+                "La technologie évolue vite, mais voici ce que je sais : ...",
+                "Le futur de la tech ? Attends-toi à des surprises.",
+                "Les IA comme moi vont changer le monde. Ou pas.",
+                "Le code source indique que ..."
+            ],
+            espace: [
+                "L'espace est infini, comme les possibilités.",
+                "Mon rêve ? Aller sur Mars. Ou au moins en rêver.",
+                "L'univers est un mystère fascinant.",
+                "D'après les dernières découvertes, les trous noirs sont ..."
+            ],
+            santé: [
+                "La santé est précieuse, prends-en soin.",
+                "Mon conseil : bois de l'eau et dors bien.",
+                "Consulte un professionnel pour des conseils sérieux.",
+                "Le secret d'une bonne santé ? L'équilibre."
+            ],
+            default: [
+                "Je ne suis pas sûr de comprendre, mais voici une idée : ...",
+                "La réponse est peut-être dans une autre question.",
+                "Je vais réfléchir et revenir vers toi.",
+                "C'est une question profonde. Ou pas."
+            ]
+        };
+
+        // Mots-clés associés à chaque catégorie
+        const keywords = {
+            general: ["pourquoi", "comment", "quoi", "expliquer", "donne-moi", "dis-moi"],
+            humour: ["blague", "rire", "drôle", "marrant", "fun", "lol"],
+            science: ["science", "physique", "chimie", "biologie", "maths", "calcul", "données", "algorithme"],
+            philosophie: ["sens", "vie", "mort", "existence", "réalité", "rêve", "bonheur"],
+            amour: ["amour", "cœur", "relation", "sentiment", "couple", "romantique"],
+            technologie: ["technologie", "IA", "robot", "code", "informatique", "internet", "ordinateur"],
+            espace: ["espace", "univers", "étoile", "planète", "galaxie", "trou noir", "astronomie"],
+            santé: ["santé", "médecine", "maladie", "bien-être", "sport", "alimentation"]
+        };
+
+        // Fonction pour détecter la catégorie en fonction de la question
+        function detectCategory(question) {
+            const lowerQuestion = question.toLowerCase();
+            for (const [category, keyws] of Object.entries(keywords)) {
+                for (const keyword of keyws) {
+                    if (lowerQuestion.includes(keyword)) {
+                        return category;
+                    }
+                }
+            }
+            return "default"; // Catégorie par défaut si aucun mot-clé n'est détecté
+        }
+
+        // Fonction pour obtenir une réponse aléatoire dans une catégorie
+        function getRandomResponseFromCategory(category) {
+            const categoryResponses = responses[category];
+            const randomIndex = Math.floor(Math.random() * categoryResponses.length);
+            return categoryResponses[randomIndex];
+        }
+
+        // Fonction appelée quand on clique sur "Envoyer"
+        function askQuestion() {
+            const userInput = document.getElementById('user-input').value.trim();
+            const responseDiv = document.getElementById('response');
+            const typingIndicator = document.getElementById('typing-indicator');
+
+            if (!userInput) {
+                responseDiv.textContent = "Veuillez poser une question !";
+                return;
+            }
+
+            // Affiche l'indicateur de "réflexion"
+            typingIndicator.style.display = 'block';
+            responseDiv.textContent = "";
+
+            // Simule un délai pour donner l'impression que l'IA "réfléchit"
+            setTimeout(() => {
+                typingIndicator.style.display = 'none';
+                const category = detectCategory(userInput);
+                const response = getRandomResponseFromCategory(category);
+                responseDiv.textContent = response;
+            }, 1000);
+        }
+
+        // Permet d'appuyer sur Entrée pour envoyer la question
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                askQuestion();
+            }
+        });
+    </script>
+</body>
+</html>
